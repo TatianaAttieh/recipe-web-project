@@ -1,28 +1,51 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
 name: Node.js CI
 
 on:
   push:
     branches: [ "main" ]
-    
+
 jobs:
   build:
-
     runs-on: self-hosted
 
     strategy:
       matrix:
         node-version: [18.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run build --if-present
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Backend
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: ./react-project-backend
+
+      - name: Build backend
+        run: npm run build --if-present
+        working-directory: ./react-project-backend
+
+      - name: Run backend tests
+        run: npm test
+        working-directory: ./react-project-backend
+        # optional: if you don't have tests yet, change to `run: echo "No backend tests"`
+
+      # Frontend
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: ./react-project-frontend
+
+      - name: Build frontend
+        run: npm run build --if-present
+        working-directory: ./react-project-frontend
+
+      - name: Run frontend tests
+        run: npm test
+        working-directory: ./react-project-frontend
+        # optional: if no tests, replace run with a placeholder
